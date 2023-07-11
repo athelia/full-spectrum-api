@@ -1,4 +1,5 @@
-from model import app, db
+from data.load_data import parse_text
+from model import app
 
 
 @app.route("/")
@@ -9,6 +10,11 @@ def index():
 @app.route("/stock", methods=["GET"])
 def get_stock():
     return
+
+
+@app.route("/about", methods=["GET"])
+def get_about():
+    return parse_text("about")
 
 
 #
