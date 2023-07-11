@@ -37,9 +37,7 @@ if __name__ == "__main__":
     #     )
     #     raise
     db_user = input("db user?\n> ")
-    db_password = input(
-        "db password?\n> ",
-    )
+    db_password = input("db password?\n> ")
     db_host = "localhost"
     db_name = "fullspectrum-dev"
     app.config[
