@@ -37,8 +37,8 @@ def import_csv_to_db(
                 record_date=line[0],
                 quantity=line[1],
             )
-            # if start/end dates specified, write data only between those bounds
             for line in formatted_fields
+            # if start/end dates specified, write data only between those bounds
             if start_date < line[0] < end_date
         ]
         _ = [db.session.add(record) for record in egg_records]
@@ -49,9 +49,7 @@ def import_csv_to_db(
 
 if __name__ == "__main__":
     db_user = input("db user?\n> ")
-    db_password = input(
-        "db password?\n> ",
-    )
+    db_password = input("db password?\n> ")
     db_host = "localhost"
     db_name = "fullspectrum-dev"
     app.config[
