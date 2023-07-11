@@ -1,9 +1,14 @@
+import logging
 import uuid
 from datetime import datetime
 from pprint import pprint
 from typing import List
 
 from model import EggStockRecord, app, db
+
+log = logging.Logger("LoadData")
+
+TEXT_SOURCES = {"about": "../data/about.txt", "test": "../tests/test.txt"}
 
 
 def import_csv_to_db(
@@ -13,13 +18,10 @@ def import_csv_to_db(
 ) -> List[EggStockRecord]:
     """Format CSV data into EggStockRecord and commit to db
 
-    :argument:
-        file (str): filename
-        start_date (datetime): date of the earliest record to be included
-        end_date (datetime): date of the latest record to be included
-
-    :returns:
-        List[EggStockRecord]: EggStockRecords committed to db
+    :param file: filename
+    :param start_date: date of the earliest record to be included
+    :param end_date: date of the latest record to be included
+    :return: EggStockRecords committed to db
     """
     with open(file) as f:
         # split at comma delimiter and exclude rows without dates
@@ -45,6 +47,43 @@ def import_csv_to_db(
         db.session.commit()
         print(f"Committed {len(_)} new records")
         return egg_records
+
+
+def get_path_for_text_type(text_type: str) -> str:
+    """From the type of text, return the path.
+    :param text_type: kind of text to be retrieved.
+    :return: file path corresponding to the type of text
+    :raise KeyError for unknown text types
+    """
+    try:
+        source = TEXT_SOURCES[text_type]
+    except KeyError as e:
+        log.warning(f"Unknown text_type={text_type}")
+        raise e
+    return source
+
+
+def parse_text(text_type: str) -> str:
+    """Return text of a type from the specified source.
+    :param text_type: kind of text to be retrieved.
+    :return: content of text
+    :raise FileNotFound if the file is invalid
+    """
+    source = get_path_for_text_type(text_type)
+    output = ""
+    try:
+        with open(file=source) as f:
+            # TODO: can use a generator comprehension?
+            # output += (line for line in f)
+            for line in f:
+                output += line
+            return output
+    except FileNotFoundError as e:
+        log.warning(
+            f"No file found for text_type{text_type}.",
+            f"Available sources: {TEXT_SOURCES}",
+        )
+        raise e
 
 
 if __name__ == "__main__":
