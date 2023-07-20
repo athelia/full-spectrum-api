@@ -21,6 +21,13 @@ createdb fullspectrum-dev
 ## below optional, but verifies db was created successfully
 psql fullspectrum-dev
 ```
+  - If the above step fails, you may need to finish installing postgres with:
+    ```bash
+    initdb -D /usr/local/pgsql/data  
+    pg_ctl -D /usr/local/pgsql/data
+    pg_ctl -D /usr/local/pgsql/data -l logfile start
+    ```
+ 
 3. Run `model.py`. 
    - This will require db admin credentials. Usually, these match your user login credentials.
    - The file will create the tables and relationships.
