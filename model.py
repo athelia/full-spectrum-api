@@ -12,7 +12,7 @@ app = Flask(__name__)
 class EggStockRecord(db.Model):
     """Model class for stock records."""
 
-    __tablename__ = "egg_stock_record"
+    __tablename__ = "egg_stock_records"
 
     id: Mapped[uuid.UUID] = db.Column(db.Uuid, primary_key=True)
     created_at: Mapped[datetime] = db.Column(db.DateTime)
@@ -23,6 +23,58 @@ class EggStockRecord(db.Model):
     def __repr__(self) -> str:
         # !r returns the repr of the expression
         return f"<EggStockRecord(id={self.id!r}, record_date={self.record_date}, quantity={self.quantity})>"
+
+
+class Ingredient(db.Model):
+    """Model class for ingredients of recipes (to enable scalability)."""
+
+    __tablename__ = "ingredients"
+
+    id: Mapped[uuid.UUID] = db.Column(db.Uuid, primary_key=True)
+    created_at: Mapped[datetime] = db.Column(db.DateTime)
+    edited_at: Mapped[datetime] = db.Column(db.DateTime)
+    name: Mapped[str] = db.Column(db.String)
+    units: Mapped[str] = db.Column(db.String)  # TODO maybe: make a units table
+
+    def __repr__(self) -> str:
+        return f"<Ingredient(id={self.id!r}, name={self.name}, units={self.units})>"
+
+
+class Recipe(db.Model):
+    __tablename__ = "recipes"
+
+    id: Mapped[uuid.UUID] = db.Column(db.Uuid, primary_key=True)
+    created_at: Mapped[datetime] = db.Column(db.DateTime)
+    edited_at: Mapped[datetime] = db.Column(db.DateTime)
+    name: Mapped[str] = db.Column(db.String)
+    ingredients = db.Relationship(
+        "Ingredient", backref="recipes", secondary="ingredients_recipes"
+    )
+    instructions: Mapped[str] = db.Column(db.String)
+
+    def __repr__(self) -> str:
+        return f"<Recipe(id={self.id!r}, name={self.name})>"
+
+
+class IngredientRecipe(db.Model):
+    """Association table for ingredients and recipes. Also specifies quantity of ingredient."""
+
+    __tablename__ = "ingredients_recipes"
+
+    id: Mapped[uuid.UUID] = db.Column(db.Uuid, primary_key=True)
+    ingredient_id: Mapped[uuid.UUID] = db.Column(
+        db.Uuid, db.ForeignKey("ingredients.id"), nullable=False
+    )
+    ingredient_qty: Mapped[int] = db.Column(db.Integer)
+    recipe_id: Mapped[uuid.UUID] = db.Column(
+        db.Uuid, db.ForeignKey("recipes.id"), nullable=False
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<IngredientRecipe(id={self.id!r}, ingredient_id={self.ingredient_id},"
+            f"ingredient_qty={self.ingredient_qty}, recipe_id={self.recipe_id})>"
+        )
 
 
 if __name__ == "__main__":
