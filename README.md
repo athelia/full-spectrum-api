@@ -9,9 +9,20 @@ Provide an API for Full Spectrum Eggs, a backyard farm ecommerce site.
   - Recommended: manage Python versions with `pyenv` - [pyenv github](https://github.com/pyenv/pyenv) 
   - Alternatively, you can [direct download 3.10.10](https://www.python.org/downloads/release/python-31010/)
 - [Install `poetry` package manager](https://python-poetry.org/docs/#installation)
+- Install PostGreSQL 14:
+  - by [direct download](https://www.postgresql.org/download/)
+  - or with Homebrew: `brew install postgresql@14`
 
 ## Installation
 1. Clone repository to local directory
-2. Create psql database
-
-## 
+2. Create psql database `fullspectrum-dev`: 
+```bash
+createdb fullspectrum-dev
+## below optional, but verifies db was created successfully
+psql fullspectrum-dev
+```
+3. Run `model.py`. 
+   - This will require db admin credentials. Usually, these match your user login credentials.
+   - The file will create the tables and relationships.
+4. Run `main.py`.
+   - This starts the local server.
