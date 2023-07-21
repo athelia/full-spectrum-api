@@ -4,11 +4,52 @@ from datetime import datetime
 from pprint import pprint
 from typing import List
 
-from model import EggStockRecord, app, db
+from model import EggStockRecord, Ingredient, IngredientRecipe, Recipe, app, db
 
 log = logging.Logger("LoadData")
 
 TEXT_SOURCES = {"about": "../data/about.txt", "test": "../tests/test.txt"}
+
+
+def create_custard_recipe() -> None:
+    now = datetime.now()
+    egg = Ingredient(id=uuid.uuid4(), created_at=now, edited_at=now, name="egg")
+    milk = Ingredient(id=uuid.uuid4(), created_at=now, edited_at=now, name="milk")
+    sugar = Ingredient(id=uuid.uuid4(), created_at=now, edited_at=now, name="sugar")
+    water = Ingredient(id=uuid.uuid4(), created_at=now, edited_at=now, name="water")
+    db.session.add_all([egg, milk, sugar, water])
+    db.session.commit()
+    custard = Recipe(
+        id=uuid.uuid4(),
+        created_at=now,
+        edited_at=now,
+        name="Custard Pudding (Steamed)",
+        instructions="1. Mix rock sugar and water in a saucepan. Boil on low heat, stirring occasionally. Once the "
+        "sugar has dissolved, switch off the heat and pour in the fresh milk. Set this aside to cool.\n"
+        "2. Beat the eggs gently with a whisk or fork before adding to the mixture. Stir well."
+        "Strain egg mixture through a sieve to remove bubbles.\n"
+        "3. Once the egg mixture is ready, gently pour it into the moulds or bowls. Use a small spoon to"
+        " remove any bubbles on the surface. Wrap the bowls tightly with cling wrap or tin foil.\n"
+        "4. Place the bowls into the steamer and steam for 12 minutes. Lift it every few minutes to let "
+        "steam escape. Once the egg pudding has set, it is ready to serve.",
+        source="https://www.honestfoodtalks.com/egg-pudding-custard-boba/#ingredients",
+    )
+    db.session.add(custard)
+    db.session.commit()
+    custard_eggs = IngredientRecipe(
+        id=uuid.uuid4(), ingredient_id=egg.id, ingredient_qty=4, ingredient_units="ea", recipe_id=custard.id
+    )
+    custard_milk = IngredientRecipe(
+        id=uuid.uuid4(), ingredient_id=milk.id, ingredient_qty=500, ingredient_units="mL", recipe_id=custard.id
+    )
+    custard_sugar = IngredientRecipe(
+        id=uuid.uuid4(), ingredient_id=sugar.id, ingredient_qty=125, ingredient_units="g", recipe_id=custard.id
+    )
+    custard_water = IngredientRecipe(
+        id=uuid.uuid4(), ingredient_id=water.id, ingredient_qty=125, ingredient_units="mL", recipe_id=custard.id
+    )
+    db.session.add_all([custard_eggs, custard_milk, custard_sugar, custard_water])
+    db.session.commit()
 
 
 def import_csv_to_db(
@@ -98,3 +139,4 @@ if __name__ == "__main__":
     with app.app_context():
         records = import_csv_to_db("20230119.csv", end_date=datetime(2023, 1, 1))
         pprint(f"head: {records[:5]}, tail: {records[-5:]}")
+        create_custard_recipe()
