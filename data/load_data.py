@@ -4,7 +4,7 @@ from datetime import datetime
 from pprint import pprint
 from typing import List
 
-from model import EggStockRecord, Ingredient, IngredientRecipe, Recipe, app, db
+from model import EggStockRecord, Ingredient, IngredientRecipe, Recipe, app, connect_to_db, db
 
 log = logging.Logger("LoadData")
 
@@ -32,6 +32,7 @@ def create_custard_recipe() -> None:
         " remove any bubbles on the surface. Wrap the bowls tightly with cling wrap or tin foil.\n"
         "4. Place the bowls into the steamer and steam for 12 minutes. Lift it every few minutes to let "
         "steam escape. Once the egg pudding has set, it is ready to serve.",
+        servings=4,
         source="https://www.honestfoodtalks.com/egg-pudding-custard-boba/#ingredients",
     )
     db.session.add(custard)
@@ -128,14 +129,15 @@ def parse_text(text_type: str) -> str:
 
 
 if __name__ == "__main__":
-    db_user = input("db user?\n> ")
-    db_password = input("db password?\n> ")
-    db_host = "localhost"
-    db_name = "fullspectrum-dev"
-    app.config[
-        "SQLALCHEMY_DATABASE_URI"
-    ] = f"postgresql://{db_user}:{db_password}@{db_host}/{db_name}"
-    db.init_app(app)
+    # db_user = input("db user?\n> ")
+    # db_password = input("db password?\n> ")
+    # db_host = "localhost"
+    # db_name = "fullspectrum-dev"
+    # app.config[
+    #     "SQLALCHEMY_DATABASE_URI"
+    # ] = f"postgresql://{db_user}:{db_password}@{db_host}/{db_name}"
+    # db.init_app(app)
+    connect_to_db(app)
     with app.app_context():
         records = import_csv_to_db("20230119.csv", end_date=datetime(2023, 1, 1))
         pprint(f"head: {records[:5]}, tail: {records[-5:]}")

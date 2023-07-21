@@ -79,6 +79,13 @@ class IngredientRecipe(db.Model):
         )
 
 
+def connect_to_db(application):
+    application.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///fullspectrum-dev'
+    application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    db.app = application
+    db.init_app(application)
+
+
 if __name__ == "__main__":
     # import os
     #
@@ -90,14 +97,15 @@ if __name__ == "__main__":
     #         "DB environmental variables not set. Specify DB_USER, DB_PASSWORD, DB_HOST, and DB_NAME in .env"
     #     )
     #     raise
-    db_user = input("db user?\n> ")
-    db_password = input("db password?\n> ")
-    db_host = "localhost"
-    db_name = "fullspectrum-dev"
-    app.config[
-        "SQLALCHEMY_DATABASE_URI"
-    ] = f"postgresql://{db_user}:{db_password}@{db_host}/{db_name}"
-    db.init_app(app)
+    # db_user = input("db user?\n> ")
+    # db_password = input("db password?\n> ")
+    # db_host = "localhost"
+    # db_name = "fullspectrum-dev"
+    # app.config[
+    #     "SQLALCHEMY_DATABASE_URI"
+    # ] = f"postgresql://{db_user}:{db_password}@{db_host}/{db_name}"
+    # db.init_app(app)
+    connect_to_db(app)
 
     with app.app_context():
         db.drop_all()

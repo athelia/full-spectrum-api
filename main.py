@@ -1,5 +1,5 @@
 from data.load_data import parse_text
-from model import app
+from model import Recipe, app, connect_to_db
 
 
 @app.route("/")
