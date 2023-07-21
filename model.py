@@ -34,7 +34,6 @@ class Ingredient(db.Model):
     created_at: Mapped[datetime] = db.Column(db.DateTime)
     edited_at: Mapped[datetime] = db.Column(db.DateTime)
     name: Mapped[str] = db.Column(db.String)
-    units: Mapped[str] = db.Column(db.String)  # TODO maybe: make a units table
 
     def __repr__(self) -> str:
         return f"<Ingredient(id={self.id!r}, name={self.name}, units={self.units})>"
@@ -51,6 +50,8 @@ class Recipe(db.Model):
         "Ingredient", backref="recipes", secondary="ingredients_recipes"
     )
     instructions: Mapped[str] = db.Column(db.String)
+    servings: Mapped[int] = db.Column(db.Integer)
+    source: Mapped[str] = db.Column(db.String)
 
     def __repr__(self) -> str:
         return f"<Recipe(id={self.id!r}, name={self.name})>"
@@ -66,6 +67,7 @@ class IngredientRecipe(db.Model):
         db.Uuid, db.ForeignKey("ingredients.id"), nullable=False
     )
     ingredient_qty: Mapped[int] = db.Column(db.Integer)
+    ingredient_units: Mapped[str] = db.Column(db.String)  # TODO maybe: make a units table
     recipe_id: Mapped[uuid.UUID] = db.Column(
         db.Uuid, db.ForeignKey("recipes.id"), nullable=False
     )
