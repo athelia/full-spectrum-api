@@ -14,22 +14,23 @@ Provide an API for Full Spectrum Eggs, a backyard farm ecommerce site.
   - or with Homebrew: `brew install postgresql@14`
 
 ## Installation
-1. Clone repository to local directory
-2. Create psql database `fullspectrum-dev`: 
-```bash
-createdb fullspectrum-dev
-## below optional, but verifies db was created successfully
-psql fullspectrum-dev
-```
-  - If the above step fails, you may need to finish installing postgres with:
+1. Clone repository to local directory.
+2. Create psql database `fullspectrum-dev`:
     ```bash
-    initdb -D /usr/local/pgsql/data  
-    pg_ctl -D /usr/local/pgsql/data
-    pg_ctl -D /usr/local/pgsql/data -l logfile start
+    createdb fullspectrum-dev
     ```
- 
-3. Run `model.py`. 
-   - This will require db admin credentials. Usually, these match your user login credentials.
+    - Optionally, run `psql fullspectrum-dev` to verify that the database was created successfully.
+    - If the above step fails, you may need to finish installing and starting postgres with:
+        ```bash
+        sudo mkdir -p /usr/local/pgsql/data
+        sudo chown <your-username-here> /usr/local/pgsql /usr/local/pgsql/data  
+        initdb -D /usr/local/pgsql/data
+        pg_ctl -D /usr/local/pgsql/data -l logfile start
+        ```
+3. Run `poetry install` inside the project directory to install dependencies.
+4. Run `poetry shell` to create and activate a shell within the virtual environment.
+5. Run `model.py`. 
+   - This may require db admin credentials. Usually, these match your user login credentials.
    - The file will create the tables and relationships.
-4. Run `main.py`.
+6. Run `main.py`.
    - This starts the local server.
