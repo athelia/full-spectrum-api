@@ -1,5 +1,6 @@
 import uuid
 from datetime import date, datetime
+from typing import Dict, List
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -34,9 +35,26 @@ class Ingredient(db.Model):
     created_at: Mapped[datetime] = db.Column(db.DateTime)
     edited_at: Mapped[datetime] = db.Column(db.DateTime)
     name: Mapped[str] = db.Column(db.String)
+    ingredient_recipes = db.Relationship()  # legal?
+
+    def to_json(self) -> Dict:
+        return {
+            "id": self.id,
+            "created_at": self.created_at,
+            "edited_at": self.edited_at,
+            "name": self.name,
+        }
+
+    def __init__(self, name):
+        super().__init__(
+            id=uuid.uuid4(),
+            created_at=datetime.utcnow(),
+            edited_at=datetime.utcnow(),
+            name=name,
+        )
 
     def __repr__(self) -> str:
-        return f"<Ingredient(id={self.id!r}, name={self.name}, units={self.units})>"
+        return f"<Ingredient(id={self.id!r}, name={self.name})>"
 
 
 class Recipe(db.Model):
@@ -46,12 +64,35 @@ class Recipe(db.Model):
     created_at: Mapped[datetime] = db.Column(db.DateTime)
     edited_at: Mapped[datetime] = db.Column(db.DateTime)
     name: Mapped[str] = db.Column(db.String)
-    ingredients = db.Relationship(
+    ingredients: Mapped[List[Ingredient]] = db.Relationship(
         "Ingredient", backref="recipes", secondary="ingredients_recipes"
     )
     instructions: Mapped[str] = db.Column(db.String)
     servings: Mapped[int] = db.Column(db.Integer)
     source: Mapped[str] = db.Column(db.String)
+
+    def to_json(self) -> Dict:
+        return {
+            "id": self.id,
+            "created_at": self.created_at,
+            "edited_at": self.edited_at,
+            "name": self.name,
+            "ingredients": self.ingredients,
+            "instructions": self.instructions,
+            "servings": self.servings,
+            "source": self.source,
+        }
+
+    def __init__(self, name, instructions, servings, source):
+        super().__init__(
+            id=uuid.uuid4(),
+            created_at=datetime.utcnow(),
+            edited_at=datetime.utcnow(),
+            name=name,
+            instructions=instructions,
+            servings=servings,
+            source=source,
+        )
 
     def __repr__(self) -> str:
         return f"<Recipe(id={self.id!r}, name={self.name})>"
@@ -67,23 +108,44 @@ class IngredientRecipe(db.Model):
         db.Uuid, db.ForeignKey("ingredients.id"), nullable=False
     )
     ingredient_qty: Mapped[int] = db.Column(db.Integer)
-    ingredient_units: Mapped[str] = db.Column(db.String)  # TODO maybe: make a units table
+    ingredient_units: Mapped[str] = db.Column(
+        db.String
+    )  # TODO maybe: make a units table
     recipe_id: Mapped[uuid.UUID] = db.Column(
         db.Uuid, db.ForeignKey("recipes.id"), nullable=False
     )
 
+    def to_json(self) -> Dict:
+        return {
+            "id": self.id,
+            "ingredient_id": self.ingredient_id,
+            "ingredient_qty": self.ingredient_qty,
+            "ingredient_units": self.ingredient_units,
+            "recipe_id": self.recipe_id,
+        }
+
+    def __init__(self, ingredient_id, ingredient_qty, ingredient_units, recipe_id):
+        super().__init__(
+            id=uuid.uuid4(),
+            ingredient_id=ingredient_id,
+            ingredient_qty=ingredient_qty,
+            ingredient_units=ingredient_units,
+            recipe_id=recipe_id,
+        )
+
     def __repr__(self) -> str:
         return (
             f"<IngredientRecipe(id={self.id!r}, ingredient_id={self.ingredient_id},"
-            f"ingredient_qty={self.ingredient_qty}, recipe_id={self.recipe_id})>"
+            f"ingredient_qty={self.ingredient_qty}, ingredient_units={self.ingredient_units},recipe_id={self.recipe_id})>"
         )
 
 
 def connect_to_db(application):
-    application.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///fullspectrum-dev'
-    application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    application.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///fullspectrum-dev"
+    application.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.app = application
     db.init_app(application)
+    app.app_context().push()
 
 
 if __name__ == "__main__":
@@ -106,7 +168,4 @@ if __name__ == "__main__":
     # ] = f"postgresql://{db_user}:{db_password}@{db_host}/{db_name}"
     # db.init_app(app)
     connect_to_db(app)
-
-    with app.app_context():
-        db.drop_all()
-        db.create_all()
+    db.create_all()

@@ -20,18 +20,22 @@ def get_about():
 @app.route("/recipes", methods=["GET"])
 def get_recipes():
     r = Recipe.query.first()
-    return {"name": r.name,
-            "ingredients": [{
+    return {
+        "name": r.name,
+        "ingredients": [
+            {
                 "name": ingredient.name,
-                "qty": ingredient.ingredient_qty,
-                "units": ingredient.ingredient_units
-            } for ingredient in r.ingredients],
-            "instructions": r.instructions,
-            "servings": r.servings,
-            "source": r.source
+                # "qty": r.ingredients_recipes.
+                # "units": ingredient.ingredient_units,
             }
+            for ingredient in r.ingredients
+        ],
+        "instructions": r.instructions,
+        "servings": r.servings,
+        "source": r.source,
+    }
 
 
 if __name__ == "__main__":
     connect_to_db(app)
-    app.run(port=5000, host='0.0.0.0')
+    app.run(port=5000, host="0.0.0.0")

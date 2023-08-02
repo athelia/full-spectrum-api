@@ -4,7 +4,15 @@ from datetime import datetime
 from pprint import pprint
 from typing import List
 
-from model import EggStockRecord, Ingredient, IngredientRecipe, Recipe, app, connect_to_db, db
+from model import (
+    EggStockRecord,
+    Ingredient,
+    IngredientRecipe,
+    Recipe,
+    app,
+    connect_to_db,
+    db,
+)
 
 log = logging.Logger("LoadData")
 
@@ -12,17 +20,13 @@ TEXT_SOURCES = {"about": "../data/about.txt", "test": "../tests/test.txt"}
 
 
 def create_custard_recipe() -> None:
-    now = datetime.now()
-    egg = Ingredient(id=uuid.uuid4(), created_at=now, edited_at=now, name="egg")
-    milk = Ingredient(id=uuid.uuid4(), created_at=now, edited_at=now, name="milk")
-    sugar = Ingredient(id=uuid.uuid4(), created_at=now, edited_at=now, name="sugar")
-    water = Ingredient(id=uuid.uuid4(), created_at=now, edited_at=now, name="water")
+    egg = Ingredient(name="egg")
+    milk = Ingredient(name="milk")
+    sugar = Ingredient(name="sugar")
+    water = Ingredient(name="water")
     db.session.add_all([egg, milk, sugar, water])
     db.session.commit()
     custard = Recipe(
-        id=uuid.uuid4(),
-        created_at=now,
-        edited_at=now,
         name="Custard Pudding (Steamed)",
         instructions="1. Mix rock sugar and water in a saucepan. Boil on low heat, stirring occasionally. Once the "
         "sugar has dissolved, switch off the heat and pour in the fresh milk. Set this aside to cool.\n"
@@ -38,16 +42,28 @@ def create_custard_recipe() -> None:
     db.session.add(custard)
     db.session.commit()
     custard_eggs = IngredientRecipe(
-        id=uuid.uuid4(), ingredient_id=egg.id, ingredient_qty=4, ingredient_units="ea", recipe_id=custard.id
+        ingredient_id=egg.id,
+        ingredient_qty=4,
+        ingredient_units="ea",
+        recipe_id=custard.id,
     )
     custard_milk = IngredientRecipe(
-        id=uuid.uuid4(), ingredient_id=milk.id, ingredient_qty=500, ingredient_units="mL", recipe_id=custard.id
+        ingredient_id=milk.id,
+        ingredient_qty=500,
+        ingredient_units="mL",
+        recipe_id=custard.id,
     )
     custard_sugar = IngredientRecipe(
-        id=uuid.uuid4(), ingredient_id=sugar.id, ingredient_qty=125, ingredient_units="g", recipe_id=custard.id
+        ingredient_id=sugar.id,
+        ingredient_qty=125,
+        ingredient_units="g",
+        recipe_id=custard.id,
     )
     custard_water = IngredientRecipe(
-        id=uuid.uuid4(), ingredient_id=water.id, ingredient_qty=125, ingredient_units="mL", recipe_id=custard.id
+        ingredient_id=water.id,
+        ingredient_qty=125,
+        ingredient_units="mL",
+        recipe_id=custard.id,
     )
     db.session.add_all([custard_eggs, custard_milk, custard_sugar, custard_water])
     db.session.commit()
