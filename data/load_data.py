@@ -139,6 +139,6 @@ def parse_text(text_type: str) -> str:
 if __name__ == "__main__":
     connect_to_db(app)
     with app.app_context():
-        records = import_csv_to_db("20230119.csv", end_date=datetime(2023, 1, 1))
+        records = import_csv_to_db("sample.csv", end_date=datetime(2023, 1, 1))
         pprint(f"head: {records[:5]}, tail: {records[-5:]}")
         create_custard_recipe()
