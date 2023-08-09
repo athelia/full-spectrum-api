@@ -21,13 +21,31 @@ class EggStockRecord(db.Model):
     record_date: Mapped[date] = db.Column(db.Date)
     quantity: Mapped[int] = db.Column(db.Integer)
 
+    def to_json(self) -> Dict:
+        return {
+            "id": self.id,
+            "created_at": self.created_at,
+            "edited_at": self.edited_at,
+            "record_date": self.record_date,
+            "quantity": self.quantity,
+        }
+
+    def __init__(self, record_date, quantity):
+        super().__init__(
+            id=uuid.uuid4(),
+            created_at=datetime.utcnow(),
+            edited_at=datetime.utcnow(),
+            record_date=record_date,
+            quantity=quantity,
+        )
+
     def __repr__(self) -> str:
         # !r returns the repr of the expression
         return f"<EggStockRecord(id={self.id!r}, record_date={self.record_date}, quantity={self.quantity})>"
 
 
 class AbstractIngredient(db.Model):
-    """Model class for ingredients of recipes (to enable scalability)."""
+    """Model class for ingredients of recipes"""
 
     __tablename__ = "abstract_ingredients"
 
@@ -156,24 +174,6 @@ def connect_to_db(application):
 
 
 if __name__ == "__main__":
-    # import os
-    #
-    # try:
-    #     db_user, db_password = os.environ["DB_USER"], os.environ["DB_PASSWORD"]
-    #     db_host, db_name = os.environ["DB_HOST"], os.environ["DB_NAME"]
-    # except KeyError:
-    #     print(
-    #         "DB environmental variables not set. Specify DB_USER, DB_PASSWORD, DB_HOST, and DB_NAME in .env"
-    #     )
-    #     raise
-    # db_user = input("db user?\n> ")
-    # db_password = input("db password?\n> ")
-    # db_host = "localhost"
-    # db_name = "fullspectrum-dev"
-    # app.config[
-    #     "SQLALCHEMY_DATABASE_URI"
-    # ] = f"postgresql://{db_user}:{db_password}@{db_host}/{db_name}"
-    # db.init_app(app)
     connect_to_db(app)
     db.drop_all()
     db.create_all()

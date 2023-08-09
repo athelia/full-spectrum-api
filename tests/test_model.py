@@ -1,8 +1,8 @@
 import unittest
 
-from model import Ingredient
+from model import AbstractIngredient
 
 
 class TestModels(unittest.TestCase):
     def test_ingredient(self):
-        flour = Ingredient(name="flour")
+        flour = AbstractIngredient(name="flour")

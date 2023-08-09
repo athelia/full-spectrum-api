@@ -1,6 +1,6 @@
 import logging
-import uuid
 from datetime import datetime
+from pprint import pprint
 from typing import List
 
 from model import (
@@ -36,7 +36,6 @@ def create_custard_recipe() -> None:
         servings=4,
         source="https://www.honestfoodtalks.com/egg-pudding-custard-boba/#ingredients",
     )
-    # db.session.add_all([egg, milk, sugar, water, custard])
     custard_eggs = RecipeIngredient(
         abstract_ingredient=egg,
         quantity=4,
@@ -87,9 +86,6 @@ def import_csv_to_db(
         ]
         egg_records = [
             EggStockRecord(
-                id=uuid.uuid4(),
-                created_at=datetime.now(),
-                edited_at=datetime.now(),
                 record_date=line[0],
                 quantity=line[1],
             )
@@ -141,16 +137,8 @@ def parse_text(text_type: str) -> str:
 
 
 if __name__ == "__main__":
-    # db_user = input("db user?\n> ")
-    # db_password = input("db password?\n> ")
-    # db_host = "localhost"
-    # db_name = "fullspectrum-dev"
-    # app.config[
-    #     "SQLALCHEMY_DATABASE_URI"
-    # ] = f"postgresql://{db_user}:{db_password}@{db_host}/{db_name}"
-    # db.init_app(app)
     connect_to_db(app)
     with app.app_context():
-        # records = import_csv_to_db("20230119.csv", end_date=datetime(2023, 1, 1))
-        # pprint(f"head: {records[:5]}, tail: {records[-5:]}")
+        records = import_csv_to_db("20230119.csv", end_date=datetime(2023, 1, 1))
+        pprint(f"head: {records[:5]}, tail: {records[-5:]}")
         create_custard_recipe()
