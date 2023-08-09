@@ -131,7 +131,7 @@ def parse_text(text_type: str) -> str:
             # output += (line for line in f)
             for line in f:
                 output += line
-            return output
+        return output
     except FileNotFoundError as e:
         log.warning(
             f"No file found for text_type{text_type}.",
