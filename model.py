@@ -35,7 +35,9 @@ class AbstractIngredient(db.Model):
     created_at: Mapped[datetime] = db.Column(db.DateTime)
     edited_at: Mapped[datetime] = db.Column(db.DateTime)
     name: Mapped[str] = db.Column(db.String)
-    recipe_ingredients: Mapped["RecipeIngredient"] = relationship(back_populates="abstract_ingredient")
+    recipe_ingredients: Mapped[List["RecipeIngredient"]] = relationship(
+        back_populates="abstract_ingredient"
+    )
 
     def to_json(self) -> Dict:
         return {
@@ -67,7 +69,9 @@ class Recipe(db.Model):
     instructions: Mapped[str] = db.Column(db.String)
     servings: Mapped[int] = db.Column(db.Integer)
     source: Mapped[str] = db.Column(db.String)
-    ingredients: Mapped[List["RecipeIngredient"]] = relationship(back_populates="recipes")
+    ingredients: Mapped[List["RecipeIngredient"]] = relationship(
+        back_populates="recipe"
+    )
 
     def to_json(self) -> Dict:
         return {
@@ -106,13 +110,11 @@ class RecipeIngredient(db.Model):
         db.Uuid, db.ForeignKey("abstract_ingredients.id"), nullable=False
     )
     quantity: Mapped[int] = db.Column(db.Integer)
-    units: Mapped[str] = db.Column(
-        db.String
-    )  # TODO maybe: make a units table
+    units: Mapped[str] = db.Column(db.String)  # TODO maybe: make a units table
     recipe_id: Mapped[uuid.UUID] = db.Column(
         db.Uuid, db.ForeignKey("recipes.id"), nullable=False
     )
-    abstract_ingredient: Mapped[List[AbstractIngredient]] = relationship(
+    abstract_ingredient: Mapped[AbstractIngredient] = relationship(
         back_populates="recipe_ingredients"
     )
     recipe: Mapped[Recipe] = db.Relationship(back_populates="ingredients")
@@ -127,13 +129,15 @@ class RecipeIngredient(db.Model):
             "units": self.units,
         }
 
-    def __init__(self, abstract_ingredient_id, quantity, units, recipe_id):
+    def __init__(
+        self, quantity, units, abstract_ingredient=abstract_ingredient, recipe=recipe
+    ):
         super().__init__(
             id=uuid.uuid4(),
-            abstract_ingredient_id=abstract_ingredient_id,
             quantity=quantity,
             units=units,
-            recipe_id=recipe_id,
+            abstract_ingredient=abstract_ingredient,
+            recipe=recipe,
         )
 
     def __repr__(self) -> str:
@@ -171,4 +175,5 @@ if __name__ == "__main__":
     # ] = f"postgresql://{db_user}:{db_password}@{db_host}/{db_name}"
     # db.init_app(app)
     connect_to_db(app)
+    db.drop_all()
     db.create_all()
