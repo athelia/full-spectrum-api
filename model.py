@@ -4,7 +4,7 @@ from typing import Dict, List
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import Mapped, relationship
 
 db = SQLAlchemy()
 app = Flask(__name__)
@@ -26,16 +26,16 @@ class EggStockRecord(db.Model):
         return f"<EggStockRecord(id={self.id!r}, record_date={self.record_date}, quantity={self.quantity})>"
 
 
-class Ingredient(db.Model):
+class AbstractIngredient(db.Model):
     """Model class for ingredients of recipes (to enable scalability)."""
 
-    __tablename__ = "ingredients"
+    __tablename__ = "abstract_ingredients"
 
     id: Mapped[uuid.UUID] = db.Column(db.Uuid, primary_key=True)
     created_at: Mapped[datetime] = db.Column(db.DateTime)
     edited_at: Mapped[datetime] = db.Column(db.DateTime)
     name: Mapped[str] = db.Column(db.String)
-    ingredient_recipes = db.Relationship()  # legal?
+    recipe_ingredients: Mapped["RecipeIngredient"] = relationship(back_populates="abstract_ingredient")
 
     def to_json(self) -> Dict:
         return {
@@ -54,7 +54,7 @@ class Ingredient(db.Model):
         )
 
     def __repr__(self) -> str:
-        return f"<Ingredient(id={self.id!r}, name={self.name})>"
+        return f"<AbstractIngredient(id={self.id!r}, name={self.name})>"
 
 
 class Recipe(db.Model):
@@ -64,12 +64,10 @@ class Recipe(db.Model):
     created_at: Mapped[datetime] = db.Column(db.DateTime)
     edited_at: Mapped[datetime] = db.Column(db.DateTime)
     name: Mapped[str] = db.Column(db.String)
-    ingredients: Mapped[List[Ingredient]] = db.Relationship(
-        "Ingredient", backref="recipes", secondary="ingredients_recipes"
-    )
     instructions: Mapped[str] = db.Column(db.String)
     servings: Mapped[int] = db.Column(db.Integer)
     source: Mapped[str] = db.Column(db.String)
+    ingredients: Mapped[List["RecipeIngredient"]] = relationship(back_populates="recipes")
 
     def to_json(self) -> Dict:
         return {
@@ -77,7 +75,7 @@ class Recipe(db.Model):
             "created_at": self.created_at,
             "edited_at": self.edited_at,
             "name": self.name,
-            "ingredients": self.ingredients,
+            "ingredients": [ingredient.to_json() for ingredient in self.ingredients],
             "instructions": self.instructions,
             "servings": self.servings,
             "source": self.source,
@@ -98,45 +96,50 @@ class Recipe(db.Model):
         return f"<Recipe(id={self.id!r}, name={self.name})>"
 
 
-class IngredientRecipe(db.Model):
+class RecipeIngredient(db.Model):
     """Association table for ingredients and recipes. Also specifies quantity of ingredient."""
 
-    __tablename__ = "ingredients_recipes"
+    __tablename__ = "recipe_ingredients"
 
     id: Mapped[uuid.UUID] = db.Column(db.Uuid, primary_key=True)
-    ingredient_id: Mapped[uuid.UUID] = db.Column(
-        db.Uuid, db.ForeignKey("ingredients.id"), nullable=False
+    abstract_ingredient_id: Mapped[uuid.UUID] = db.Column(
+        db.Uuid, db.ForeignKey("abstract_ingredients.id"), nullable=False
     )
-    ingredient_qty: Mapped[int] = db.Column(db.Integer)
-    ingredient_units: Mapped[str] = db.Column(
+    quantity: Mapped[int] = db.Column(db.Integer)
+    units: Mapped[str] = db.Column(
         db.String
     )  # TODO maybe: make a units table
     recipe_id: Mapped[uuid.UUID] = db.Column(
         db.Uuid, db.ForeignKey("recipes.id"), nullable=False
     )
+    abstract_ingredient: Mapped[List[AbstractIngredient]] = relationship(
+        back_populates="recipe_ingredients"
+    )
+    recipe: Mapped[Recipe] = db.Relationship(back_populates="ingredients")
 
     def to_json(self) -> Dict:
         return {
             "id": self.id,
-            "ingredient_id": self.ingredient_id,
-            "ingredient_qty": self.ingredient_qty,
-            "ingredient_units": self.ingredient_units,
+            "abstract_ingredient_id": self.abstract_ingredient_id,
             "recipe_id": self.recipe_id,
+            "name": self.abstract_ingredient.name,
+            "quantity": self.quantity,
+            "units": self.units,
         }
 
-    def __init__(self, ingredient_id, ingredient_qty, ingredient_units, recipe_id):
+    def __init__(self, abstract_ingredient_id, quantity, units, recipe_id):
         super().__init__(
             id=uuid.uuid4(),
-            ingredient_id=ingredient_id,
-            ingredient_qty=ingredient_qty,
-            ingredient_units=ingredient_units,
+            abstract_ingredient_id=abstract_ingredient_id,
+            quantity=quantity,
+            units=units,
             recipe_id=recipe_id,
         )
 
     def __repr__(self) -> str:
         return (
-            f"<IngredientRecipe(id={self.id!r}, ingredient_id={self.ingredient_id},"
-            f"ingredient_qty={self.ingredient_qty}, ingredient_units={self.ingredient_units},recipe_id={self.recipe_id})>"
+            f"<RecipeIngredient(id={self.id!r}, abstract_ingredient_id={self.abstract_ingredient_id},"
+            f"quantity={self.quantity}, units={self.units},recipe_id={self.recipe_id})>"
         )
 
 
