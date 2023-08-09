@@ -1,4 +1,3 @@
-from data.load_data import parse_text
 from model import EggStockRecord, Recipe, app, connect_to_db
 
 
@@ -20,7 +19,7 @@ def get_egg_stock_records():
 
 @app.route("/about", methods=["GET"])
 def get_about():
-    return parse_text("about")
+    return "Full Spectrum Eggs is based in Clarkston, Georgia."
 
 
 @app.route("/recipes", methods=["GET"])
