@@ -27,6 +27,10 @@ def get_recipes():
     recipes = Recipe.query.all()
     return [recipe.to_json() for recipe in recipes]
 
+@app.route("/recipe/<id>", methods=["GET"])
+def get_recipe(id):
+    recipe = Recipe.query.get(id)
+    return recipe.to_json()
 
 if __name__ == "__main__":
     connect_to_db(app)
