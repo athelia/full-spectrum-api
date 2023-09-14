@@ -28,9 +28,9 @@ def get_recipes():
     return [recipe.to_json() for recipe in recipes]
 
 
-@app.route("/recipe/<id>", methods=["GET"])
-def get_recipe(id):
-    recipe = Recipe.query.get(id)
+@app.route("/recipe/<recipe_id>", methods=["GET"])
+def get_recipe(recipe_id):
+    recipe = Recipe.query.get(recipe_id)
     return recipe.to_json()
 
 

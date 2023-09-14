@@ -9,10 +9,13 @@ from model import Recipe
 
 @pytest.fixture()
 def client():
-    app.config.update({
-        "TESTING": True,
-    })
+    app.config.update(
+        {
+            "TESTING": True,
+        }
+    )
     return app.test_client()
+
 
 def test_index(client):
     response = client.get("/")
