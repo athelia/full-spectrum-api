@@ -103,7 +103,7 @@ class MockPilafRecipe:
                     "abstract_ingredient_id": "abstract_4",
                     "recipe_id": "gourmet_poultry_pilaf_id",
                     "name": "goat butter",
-                    "quantity": .5,
+                    "quantity": 0.5,
                     "units": "stick",
                 },
                 {
@@ -155,4 +155,3 @@ def test_get_all_recipes(client, monkeypatch):
         assert len(data_dicts) == 2
         assert data_dicts[0].get("name") == "fruit pie"
         assert data_dicts[1].get("ingredients")[0].get("name") == "hylian rice"
-
