@@ -131,10 +131,6 @@ class MockQuery:
         return [MockFruitPieRecipe(), MockPilafRecipe()]
 
 
-class MockRecipeFromModel:
-    query = MockQuery
-
-
 def test_get_single_recipe(client, monkeypatch):
     with app.app_context():
         monkeypatch.setattr(Recipe, "query", MockQuery)
