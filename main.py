@@ -28,6 +28,12 @@ def get_recipes():
     return [recipe.to_json() for recipe in recipes]
 
 
+@app.route("/recipe/<recipe_id>", methods=["GET"])
+def get_recipe(recipe_id):
+    recipe = Recipe.query.get(recipe_id)
+    return recipe.to_json()
+
+
 if __name__ == "__main__":
     connect_to_db(app)
     app.run(port=5000, host="0.0.0.0")
