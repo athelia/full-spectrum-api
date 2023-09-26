@@ -18,11 +18,10 @@ log = logging.Logger("LoadData")
 TEXT_SOURCES = {"about": "../data/about.txt", "test": "../tests/test.txt"}
 
 
-def create_custard_recipe() -> None:
-    egg = AbstractIngredient(name="egg")
-    milk = AbstractIngredient(name="milk")
-    sugar = AbstractIngredient(name="sugar")
-    water = AbstractIngredient(name="water")
+def create_custard_recipe() -> Recipe:
+    """Create steamed custard recipe with four AbstractIngredients + RecipeIngredients.
+    :return: custard Recipe SQLAlchemy object with connected RecipeIngredients and AbstractIngredients
+    """
     custard = Recipe(
         name="Custard Pudding (Steamed)",
         instructions="1. Mix rock sugar and water in a saucepan. Boil on low heat, stirring occasionally. Once the "
@@ -36,32 +35,21 @@ def create_custard_recipe() -> None:
         servings=4,
         source="https://www.honestfoodtalks.com/egg-pudding-custard-boba/#ingredients",
     )
-    custard_eggs = RecipeIngredient(
-        abstract_ingredient=egg,
-        quantity=4,
-        units="ea",
-        recipe=custard,
-    )
-    custard_milk = RecipeIngredient(
-        abstract_ingredient=milk,
-        quantity=500,
-        units="mL",
-        recipe=custard,
-    )
-    custard_sugar = RecipeIngredient(
-        abstract_ingredient=sugar,
-        quantity=125,
-        units="g",
-        recipe=custard,
-    )
-    custard_water = RecipeIngredient(
-        abstract_ingredient=water,
-        quantity=125,
-        units="mL",
-        recipe=custard,
-    )
-    db.session.add_all([custard_eggs, custard_milk, custard_sugar, custard_water])
-    db.session.commit()
+    _ = [
+        RecipeIngredient(
+            abstract_ingredient=AbstractIngredient(name=name),
+            quantity=qty,
+            units=units,
+            recipe=custard,
+        )
+        for name, qty, units in [
+            ["egg", 4, "ea"],
+            ["milk", 500, "mL"],
+            ["sugar", 125, "g"],
+            ["water", 125, "mL"],
+        ]
+    ]
+    return custard
 
 
 def import_csv_to_db(
@@ -141,4 +129,6 @@ if __name__ == "__main__":
     with app.app_context():
         records = import_csv_to_db("sample.csv", end_date=datetime(2023, 1, 1))
         pprint(f"head: {records[:5]}, tail: {records[-5:]}")
-        create_custard_recipe()
+        c = create_custard_recipe()
+        db.session.add(c)
+        db.session.commit()
