@@ -87,6 +87,7 @@ class Recipe(db.Model):
     instructions: Mapped[str] = db.Column(db.String)
     servings: Mapped[int] = db.Column(db.Integer)
     source: Mapped[str] = db.Column(db.String)
+    photo: Mapped[str] = db.Column(db.String)
     ingredients: Mapped[List["RecipeIngredient"]] = relationship(
         back_populates="recipe"
     )
@@ -101,9 +102,10 @@ class Recipe(db.Model):
             "instructions": self.instructions,
             "servings": self.servings,
             "source": self.source,
+            "photo": self.photo
         }
 
-    def __init__(self, name, instructions, servings, source):
+    def __init__(self, name, instructions, servings, source, photo):
         super().__init__(
             id=uuid.uuid4(),
             created_at=datetime.utcnow(),
@@ -112,6 +114,7 @@ class Recipe(db.Model):
             instructions=instructions,
             servings=servings,
             source=source,
+            photo=photo if photo else None
         )
 
     def __repr__(self) -> str:

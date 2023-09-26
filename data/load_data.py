@@ -52,7 +52,65 @@ def create_custard_recipe() -> Recipe:
     return custard
 
 
-def import_csv_to_db(
+def handle_import(type: str, file: str) -> Union[List[EggStockRecord], List[Recipe], List[RecipeIngredient]]:
+    lines = import_csv(file)
+    fields = format_fields(type, lines)
+    model_objects = make_model_objects(type, fields)
+    return model_objects
+
+
+def import_csv(file: str) -> str:
+    with open(file) as f:
+        # This assumes a header line
+        relevant_lines = [line.split(",") for line in f[1:]]
+        return relevant_lines
+
+
+def format_fields(type: str, lines: str) -> List:
+    if type == "egg":
+        fields = [
+            [datetime.strptime(line[0], "%m/%d/%Y"), sum(int(line[4]), int(line[5]))]
+            for line in lines
+        ]
+    elif type == "recipe":
+        fields = [
+            [int(line[0]), line[1], line[2], int(line[3]), line[4], line[5]] for line in lines
+        ]
+    elif type == "recipe_ingredient":
+        fields = [
+            [line[0], int(line[1]) if line[1] else int(line[3]), line[2] if line[2] else line[4], int(line[5])] for line in lines
+        ]
+    else:
+        raise NameError("No such type")
+    return fields
+
+
+def make_model_objects(type: str, fields: List) -> Union[List[EggStockRecord], List[Recipe], List[RecipeIngredient]]:
+    if type == "egg":
+        egg_records = [EggStockRecord(
+            record_date=line[0],
+            quantity=line[1],
+        )
+            for line in fields
+        ]
+        return egg_records
+    elif type == "recipe":
+        recipes = [Recipe(name=name, instructions=instructions, servings=servings, source=source, photo=photo) for _, name, instructions, servings, source, photo in fields]
+        return recipes
+    elif type == "recipe_ingredient":
+        recipe_ingredients = [RecipeIngredient(
+                abstract_ingredient=AbstractIngredient(name=name),
+                quantity=qty,
+                units=units,
+                recipe=_,  # FIXME
+            )
+            for name, qty, units, recipe in fields
+            ]
+        return recipe_ingredients
+
+
+# TODO: generalize import_csv and route to helper fns depending on data type
+def import_egg_record_csv_to_db(
     file: str,
     start_date: datetime = datetime(1, 1, 1),
     end_date: datetime = datetime.now(),
@@ -90,7 +148,7 @@ def import_csv_to_db(
 if __name__ == "__main__":
     connect_to_db(app)
     with app.app_context():
-        records = import_csv_to_db("2022.csv", end_date=datetime(2023, 1, 1))
+        records = import_egg_record_csv_to_db("2022.csv")
         pprint(f"head: {records[:5]}, tail: {records[-5:]}")
         c = create_custard_recipe()
         db.session.add(c)
