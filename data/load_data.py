@@ -3,7 +3,7 @@ from datetime import datetime
 from pprint import pprint
 from typing import List
 
-from model import (
+from api.model import (
     AbstractIngredient,
     EggStockRecord,
     Recipe,

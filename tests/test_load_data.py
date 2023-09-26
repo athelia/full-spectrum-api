@@ -1,6 +1,7 @@
 import unittest
 
-from data.load_data import get_path_for_text_type, parse_text
+from api.model import Recipe, RecipeIngredient
+from data.load_data import create_custard_recipe, get_path_for_text_type
 
 
 class LoadDataTests(unittest.TestCase):
