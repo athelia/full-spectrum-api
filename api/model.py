@@ -52,7 +52,7 @@ class AbstractIngredient(db.Model):
     id: Mapped[uuid.UUID] = db.Column(db.Uuid, primary_key=True)
     created_at: Mapped[datetime] = db.Column(db.DateTime)
     edited_at: Mapped[datetime] = db.Column(db.DateTime)
-    name: Mapped[str] = db.Column(db.String)
+    name: Mapped[str] = db.Column(db.String, unique=True)
     recipe_ingredients: Mapped[List["RecipeIngredient"]] = relationship(
         back_populates="abstract_ingredient"
     )
