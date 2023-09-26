@@ -87,47 +87,10 @@ def import_csv_to_db(
         return egg_records
 
 
-def get_path_for_text_type(text_type: str) -> str:
-    """From the type of text, return the path.
-    :param text_type: kind of text to be retrieved.
-    :return: file path corresponding to the type of text
-    :raise KeyError for unknown text types
-    """
-    try:
-        source = TEXT_SOURCES[text_type]
-    except KeyError as e:
-        log.warning(f"Unknown text_type={text_type}")
-        raise e
-    return source
-
-
-def parse_text(text_type: str) -> str:
-    """Return text of a type from the specified source.
-    :param text_type: kind of text to be retrieved.
-    :return: content of text
-    :raise FileNotFound if the file is invalid
-    """
-    source = get_path_for_text_type(text_type)
-    output = ""
-    try:
-        with open(file=source) as f:
-            # TODO: can use a generator comprehension?
-            # output += (line for line in f)
-            for line in f:
-                output += line
-        return output
-    except FileNotFoundError as e:
-        log.warning(
-            f"No file found for text_type{text_type}.",
-            f"Available sources: {TEXT_SOURCES}",
-        )
-        raise e
-
-
 if __name__ == "__main__":
     connect_to_db(app)
     with app.app_context():
-        records = import_csv_to_db("sample.csv", end_date=datetime(2023, 1, 1))
+        records = import_csv_to_db("2022.csv", end_date=datetime(2023, 1, 1))
         pprint(f"head: {records[:5]}, tail: {records[-5:]}")
         c = create_custard_recipe()
         db.session.add(c)
