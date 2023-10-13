@@ -17,10 +17,17 @@ def client():
     return app.test_client()
 
 
-def test_index(client):
-    response = client.get("/")
+uris_and_response_strings = [
+    ("/api/", b"welcome to full spectrum eggs"),
+    ("/api/about", b"Full Spectrum Eggs is based in Clarkston, Georgia."),
+]
+
+
+@pytest.mark.parameterize("uri,response_string", uris_and_response_strings)
+def test_static_routes(client):
+    response = client.get(uri)
     assert response.status_code == 200
-    assert b"welcome to full spectrum eggs" in response.data
+    assert response_string in response.data
 
 
 class MockFruitPieRecipe:
@@ -121,7 +128,7 @@ class MockPilafRecipe:
         }
 
 
-class MockQuery:
+class MockRecipeQuery:
     @staticmethod
     def get(*args, **kwargs):
         return MockFruitPieRecipe()
@@ -133,7 +140,7 @@ class MockQuery:
 
 def test_get_single_recipe(client, monkeypatch):
     with app.app_context():
-        monkeypatch.setattr(Recipe, "query", MockQuery)
+        monkeypatch.setattr(Recipe, "query", MockRecipeQuery)
         response = client.get("/recipe/fruit_pie_id")
         assert response.status_code == 200
         data_dict = json.loads(response.data)
@@ -144,7 +151,7 @@ def test_get_single_recipe(client, monkeypatch):
 
 def test_get_all_recipes(client, monkeypatch):
     with app.app_context():
-        monkeypatch.setattr(Recipe, "query", MockQuery)
+        monkeypatch.setattr(Recipe, "query", MockRecipeQuery)
         response = client.get("/recipes")
         assert response.status_code == 200
         data_dicts = json.loads(response.data)
