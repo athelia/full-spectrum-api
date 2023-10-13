@@ -1,4 +1,4 @@
-from model import EggStockRecord, Recipe, app, connect_to_db
+from api.model import EggStockRecord, Recipe, app, connect_to_db
 
 
 @app.route("/")

@@ -3,8 +3,8 @@ import json
 
 import pytest
 
-from main import app
-from model import Recipe
+from api.main import app
+from api.model import Recipe
 
 
 @pytest.fixture()
