@@ -23,8 +23,8 @@ uris_and_response_strings = [
 ]
 
 
-@pytest.mark.parameterize("uri,response_string", uris_and_response_strings)
-def test_static_routes(client):
+@pytest.mark.parametrize("uri,response_string", uris_and_response_strings)
+def test_static_routes(client, uri, response_string):
     response = client.get(uri)
     assert response.status_code == 200
     assert response_string in response.data
@@ -141,7 +141,7 @@ class MockRecipeQuery:
 def test_get_single_recipe(client, monkeypatch):
     with app.app_context():
         monkeypatch.setattr(Recipe, "query", MockRecipeQuery)
-        response = client.get("/recipe/fruit_pie_id")
+        response = client.get("/api/recipe/fruit_pie_id")
         assert response.status_code == 200
         data_dict = json.loads(response.data)
         assert len(data_dict) == 8
@@ -152,7 +152,7 @@ def test_get_single_recipe(client, monkeypatch):
 def test_get_all_recipes(client, monkeypatch):
     with app.app_context():
         monkeypatch.setattr(Recipe, "query", MockRecipeQuery)
-        response = client.get("/recipes")
+        response = client.get("/api/recipes")
         assert response.status_code == 200
         data_dicts = json.loads(response.data)
         assert len(data_dicts) == 2
