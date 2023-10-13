@@ -1,6 +1,6 @@
 import unittest
 
-from model import AbstractIngredient
+from api.model import AbstractIngredient
 
 
 class TestModels(unittest.TestCase):

@@ -18,7 +18,7 @@ class EggStockRecord(db.Model):
     id: Mapped[uuid.UUID] = db.Column(db.Uuid, primary_key=True)
     created_at: Mapped[datetime] = db.Column(db.DateTime)
     edited_at: Mapped[datetime] = db.Column(db.DateTime)
-    record_date: Mapped[date] = db.Column(db.Date)
+    record_date: Mapped[date] = db.Column(db.Date, unique=True)
     quantity: Mapped[int] = db.Column(db.Integer)
 
     def to_json(self) -> Dict:
@@ -52,7 +52,7 @@ class AbstractIngredient(db.Model):
     id: Mapped[uuid.UUID] = db.Column(db.Uuid, primary_key=True)
     created_at: Mapped[datetime] = db.Column(db.DateTime)
     edited_at: Mapped[datetime] = db.Column(db.DateTime)
-    name: Mapped[str] = db.Column(db.String)
+    name: Mapped[str] = db.Column(db.String, unique=True)
     recipe_ingredients: Mapped[List["RecipeIngredient"]] = relationship(
         back_populates="abstract_ingredient"
     )
