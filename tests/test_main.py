@@ -4,7 +4,7 @@ import json
 import pytest
 
 from api.main import app
-from api.model import Recipe
+from api.model import Recipe, EggStockRecord
 
 
 @pytest.fixture()
@@ -138,6 +138,38 @@ class MockRecipeQuery:
         return [MockFruitPieRecipe(), MockPilafRecipe()]
 
 
+class MockEggStockRecord1:
+    @staticmethod
+    def to_json():
+        date = datetime.date(2023, 1, 1)
+        return {
+            "id": "record_1_id",
+            "created_at": date,
+            "edited_at": date,
+            "record_date": datetime.date(2021, 1, 1),
+            "quantity": 3,
+        }
+
+
+class MockEggStockRecord2:
+    @staticmethod
+    def to_json():
+        date = datetime.date(2023, 1, 1)
+        return {
+            "id": "record_1_id",
+            "created_at": date,
+            "edited_at": date,
+            "record_date": datetime.date(2021, 1, 8),
+            "quantity": 6,
+        }
+
+
+class MockEggStockRecordQuery:
+    @staticmethod
+    def all(*args, **kwargs):
+        return [MockEggStockRecord1(), MockEggStockRecord2()]
+
+
 def test_get_single_recipe(client, monkeypatch):
     with app.app_context():
         monkeypatch.setattr(Recipe, "query", MockRecipeQuery)
@@ -158,3 +190,19 @@ def test_get_all_recipes(client, monkeypatch):
         assert len(data_dicts) == 2
         assert data_dicts[0].get("name") == "fruit pie"
         assert data_dicts[1].get("ingredients")[0].get("name") == "hylian rice"
+
+
+def test_get_egg_stock_records(client, monkeypatch):
+    with app.app_context():
+        monkeypatch.setattr(EggStockRecord, "query", MockEggStockRecordQuery)
+        response = client.get("/api/egg-stock-records")
+        assert response.status_code == 200
+        data_dicts = json.loads(response.data)
+        assert len(data_dicts) == 2
+        assert data_dicts[0].get("quantity") == 3
+        record_date = (
+            datetime.datetime.strptime(
+                data_dicts[1].get("record_date"), "%a, %d %b %Y %H:%M:%S %Z"
+            )
+        ).date()
+        assert record_date == datetime.date(2021, 1, 8)

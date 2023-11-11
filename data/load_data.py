@@ -1,7 +1,6 @@
 import logging
-from datetime import datetime
-from pprint import pprint
-from typing import List
+from datetime import datetime, date
+from typing import List, TextIO, Tuple
 
 from api.model import (
     AbstractIngredient,
@@ -52,46 +51,79 @@ def create_custard_recipe() -> Recipe:
     return custard
 
 
-def import_csv_to_db(
-    file: str,
-    start_date: datetime = datetime(1, 1, 1),
-    end_date: datetime = datetime.now(),
-) -> List[EggStockRecord]:
+def read_daily_egg_csvs(
+    filestream: TextIO,
+    start_date: date = date(1, 1, 1),
+    end_date: date = date.today(),
+) -> List[Tuple[date, int]]:
     """Format CSV data into EggStockRecord and commit to db
 
-    :param file: filename
+    :param filestream: opened csv file
     :param start_date: date of the earliest record to be included
     :param end_date: date of the latest record to be included
-    :return: EggStockRecords committed to db
+    :return: EggStockRecords
     """
-    with open(file) as f:
-        # split at comma delimiter and exclude rows without dates
-        relevant_lines = [line.split(",") for line in f if line[0][0].isdigit()]
-        # date column must already be in mm/dd/yyyy format
-        formatted_fields = [
-            [datetime.strptime(line[0], "%m/%d/%Y"), int(line[5])]
-            for line in relevant_lines
-        ]
-        egg_records = [
-            EggStockRecord(
-                record_date=line[0],
-                quantity=line[1],
-            )
-            for line in formatted_fields
-            # if start/end dates specified, write data only between those bounds
-            if start_date < line[0] < end_date
-        ]
-        _ = [db.session.add(record) for record in egg_records]
-        db.session.commit()
-        print(f"Committed {len(_)} new records")
-        return egg_records
+    # split at comma delimiter and exclude rows missing dates or quantity data
+    relevant_lines = [
+        line.split(",")
+        for line in filestream
+        if line[0][0].isdigit() and line[4].isdigit()
+    ]
+    # date column must already be in mm/dd/yyyy format
+    formatted_fields = [
+        (datetime.date(datetime.strptime(line[0], "%m/%d/%Y")), int(line[4]))
+        for line in relevant_lines
+    ]
+    # in order to use a list comp here & above, line[0] must be a date type already
+    egg_records = [
+        (line[0], line[1])
+        for line in formatted_fields
+        if start_date <= line[0] <= end_date
+    ]
+    return egg_records
 
 
-if __name__ == "__main__":
+def convert_daily_eggs_to_weekly_dozens(
+    records: List[Tuple[date, int]]
+) -> List[EggStockRecord]:
+    weekly_records = []
+    week_sum = 0
+    # sum all eggs harvested per week
+    for record in records:
+        week_sum += record[1]
+        if record[0].weekday() == 0:
+            # maintain tuple structure: (date, quantity)
+            # round down dozens
+            weekly_records.append((record[0], week_sum // 12))
+            week_sum = 0
+
+    db_records = [
+        EggStockRecord(record_date=wr[0], quantity=wr[1]) for wr in weekly_records
+    ]
+    return db_records
+
+
+# exclude from coverage because only file opening is not covered by other unit tests
+def file_helper(files: List[str]) -> List[EggStockRecord]:  # pragma: no cover
+    db_records = []
+    for file in files:
+        with open(file) as f:
+            egg_records = read_daily_egg_csvs(f)
+            db_records += convert_daily_eggs_to_weekly_dozens(egg_records)
+    return db_records
+
+
+# exclude from coverage
+if __name__ == "__main__":  # pragma: no cover
     connect_to_db(app)
     with app.app_context():
-        records = import_csv_to_db("2022.csv", end_date=datetime(2023, 1, 1))
-        pprint(f"head: {records[:5]}, tail: {records[-5:]}")
-        c = create_custard_recipe()
-        db.session.add(c)
+        user_wants_custard = input("Recreate custard recipe? y/n ")
+        user_wants_eggs = input("Recreate egg quantity records? y/n ")
+        if user_wants_custard in "yY":
+            c = create_custard_recipe()
+            db.session.add(c)
+        if user_wants_eggs in "yY":
+            r = file_helper(["2021.csv", "2022.csv", "2023.csv"])
+            db.session.add_all(r)
+            print(f"Committing {len(r)} new records")
         db.session.commit()
