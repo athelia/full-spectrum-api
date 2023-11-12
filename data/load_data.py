@@ -23,14 +23,18 @@ def create_custard_recipe() -> Recipe:
     """
     custard = Recipe(
         name="Custard Pudding (Steamed)",
-        instructions="1. Mix rock sugar and water in a saucepan. Boil on low heat, stirring occasionally. Once the "
-        "sugar has dissolved, switch off the heat and pour in the fresh milk. Set this aside to cool.\n"
-        "2. Beat the eggs gently with a whisk or fork before adding to the mixture. Stir well."
-        "Strain egg mixture through a sieve to remove bubbles.\n"
-        "3. Once the egg mixture is ready, gently pour it into the moulds or bowls. Use a small spoon to"
-        " remove any bubbles on the surface. Wrap the bowls tightly with cling wrap or tin foil.\n"
-        "4. Place the bowls into the steamer and steam for 12 minutes. Lift it every few minutes to let "
-        "steam escape. Once the egg pudding has set, it is ready to serve.",
+        instructions=(
+            "1. Mix rock sugar and water in a saucepan. Boil on low heat, stirring"
+            " occasionally. Once the sugar has dissolved, switch off the heat and pour"
+            " in the fresh milk. Set this aside to cool.\n2. Beat the eggs gently with"
+            " a whisk or fork before adding to the mixture. Stir well.Strain egg"
+            " mixture through a sieve to remove bubbles.\n3. Once the egg mixture is"
+            " ready, gently pour it into the moulds or bowls. Use a small spoon to"
+            " remove any bubbles on the surface. Wrap the bowls tightly with cling wrap"
+            " or tin foil.\n4. Place the bowls into the steamer and steam for 12"
+            " minutes. Lift it every few minutes to let steam escape. Once the egg"
+            " pudding has set, it is ready to serve."
+        ),
         servings=4,
         source="https://www.honestfoodtalks.com/egg-pudding-custard-boba/#ingredients",
     )
