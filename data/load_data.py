@@ -4,7 +4,7 @@ from typing import List, TextIO, Tuple
 
 from api.model import (
     AbstractIngredient,
-    EggStockRecord,
+    ProductionRecord,
     Recipe,
     RecipeIngredient,
     app,
@@ -85,7 +85,7 @@ def read_daily_egg_csvs(
 
 def convert_daily_eggs_to_weekly_dozens(
     records: List[Tuple[date, int]]
-) -> List[EggStockRecord]:
+) -> List[ProductionRecord]:
     weekly_records = []
     week_sum = 0
     # sum all eggs harvested per week
@@ -98,13 +98,13 @@ def convert_daily_eggs_to_weekly_dozens(
             week_sum = 0
 
     db_records = [
-        EggStockRecord(record_date=wr[0], quantity=wr[1]) for wr in weekly_records
+        ProductionRecord(record_date=wr[0], quantity=wr[1]) for wr in weekly_records
     ]
     return db_records
 
 
 # exclude from coverage because only file opening is not covered by other unit tests
-def file_helper(files: List[str]) -> List[EggStockRecord]:  # pragma: no cover
+def file_helper(files: List[str]) -> List[ProductionRecord]:  # pragma: no cover
     db_records = []
     for file in files:
         with open(file) as f:

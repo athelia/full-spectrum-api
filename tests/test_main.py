@@ -4,7 +4,7 @@ import json
 import pytest
 
 from api.main import app
-from api.model import Recipe, EggStockRecord
+from api.model import Recipe, ProductionRecord
 
 
 @pytest.fixture()
@@ -194,7 +194,7 @@ def test_get_all_recipes(client, monkeypatch):
 
 def test_get_egg_stock_records(client, monkeypatch):
     with app.app_context():
-        monkeypatch.setattr(EggStockRecord, "query", MockEggStockRecordQuery)
+        monkeypatch.setattr(ProductionRecord, "query", MockEggStockRecordQuery)
         response = client.get("/api/egg-stock-records")
         assert response.status_code == 200
         data_dicts = json.loads(response.data)

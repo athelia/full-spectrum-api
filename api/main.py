@@ -1,4 +1,4 @@
-from api.model import EggStockRecord, Recipe, app, connect_to_db
+from api.model import ProductionRecord, Recipe, app, connect_to_db
 
 
 @app.route("/api/")
@@ -11,9 +11,9 @@ def get_stock():
     pass
 
 
-@app.route("/api/egg-stock-records", methods=["GET"])
-def get_egg_stock_records():
-    records = EggStockRecord.query.all()
+@app.route("/api/production-records/<product_id>", methods=["GET"])
+def get_production_records(product_id):
+    records = ProductionRecord.query.filter(ProductionRecord.product_id == product_id)
     return [record.to_json() for record in records]
 
 

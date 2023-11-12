@@ -21,6 +21,8 @@ class EggStockRecord(db.Model):
     record_date: Mapped[date] = db.Column(db.Date, unique=True)
     quantity: Mapped[int] = db.Column(db.Integer)
 
+    product: Mapped[Product] = relationship(back_populates="production_records")
+
     def to_json(self) -> Dict:
         return {
             "id": self.id,
@@ -28,6 +30,7 @@ class EggStockRecord(db.Model):
             "edited_at": self.edited_at,
             "record_date": self.record_date,
             "quantity": self.quantity,
+            "product": self.product.to_json(),
         }
 
     def __init__(self, record_date, quantity):

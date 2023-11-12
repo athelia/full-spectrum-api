@@ -2,7 +2,7 @@ import datetime
 import io
 import unittest
 
-from api.model import Recipe, RecipeIngredient, EggStockRecord
+from api.model import Recipe, RecipeIngredient, ProductionRecord
 from data.load_data import (
     create_custard_recipe,
     read_daily_egg_csvs,
@@ -51,7 +51,7 @@ class LoadDataTests(unittest.TestCase):
         ]
         db_records = convert_daily_eggs_to_weekly_dozens(mock_egg_records)
         self.assertEqual(len(db_records), 2)
-        self.assertEqual(type(db_records[0]), EggStockRecord)
+        self.assertEqual(type(db_records[0]), ProductionRecord)
         record_0517 = db_records[0]
         self.assertEqual(record_0517.record_date, datetime.date(2021, 5, 17))
         self.assertEqual(record_0517.quantity, 3)
