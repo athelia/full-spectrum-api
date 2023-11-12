@@ -1,6 +1,6 @@
 import uuid
 from datetime import date, datetime
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -10,14 +10,109 @@ db = SQLAlchemy()
 app = Flask(__name__)
 
 
-class EggStockRecord(db.Model):
-    """Model class for stock records."""
+# WIP: v1 for current sprint
+class Product(db.Model):
+    """Model class for products."""
 
-    __tablename__ = "egg_stock_records"
+    __tablename__ = "products"
 
     id: Mapped[uuid.UUID] = db.Column(db.Uuid, primary_key=True)
     created_at: Mapped[datetime] = db.Column(db.DateTime)
     edited_at: Mapped[datetime] = db.Column(db.DateTime)
+    name: Mapped[str] = db.Column(db.String)
+
+    production_records: Mapped[List["ProductionRecord"]] = relationship(
+        back_populates="product"
+    )
+    inventory_records: Mapped[List["InventoryRecord"]] = relationship(
+        back_populates="product"
+    )
+
+    def to_json(self) -> Dict:
+        return {
+            "id": self.id,
+            "created_at": self.created_at,
+            "edited_at": self.edited_at,
+            "name": self.name,
+            "production_records": [
+                record.to_json() for record in self.production_records
+            ],
+            "inventory_records": [
+                record.to_json() for record in self.inventory_records
+            ],
+        }
+
+    def __init__(self, name):
+        super().__init__(
+            id=uuid.uuid4(),
+            created_at=datetime.utcnow(),
+            edited_at=datetime.utcnow(),
+            name=name,
+        )
+
+    def __repr__(self) -> str:
+        # !r returns the repr of the expression
+        return f"<ProductionRecord(id={self.id!r}, name={self.name})>"
+
+
+class InventoryRecord(db.Model):
+    """Model class for inventory records: available products at a point in time."""
+
+    __tablename__ = "inventory_records"
+
+    id: Mapped[uuid.UUID] = db.Column(db.Uuid, primary_key=True)
+    created_at: Mapped[datetime] = db.Column(db.DateTime)
+    edited_at: Mapped[datetime] = db.Column(db.DateTime)
+    record_date: Mapped[datetime] = db.Column(db.DateTime)
+    product_id: Mapped[uuid.UUID] = db.Column(
+        db.Uuid, db.ForeignKey("products.id"), nullable=False
+    )
+    quantity: Mapped[int] = db.Column(db.Integer)
+    expiry: Mapped[Optional[datetime]] = db.Column(db.DateTime)
+
+    product: Mapped[Product] = relationship(back_populates="inventory_records")
+
+    def to_json(self) -> Dict:
+        return {
+            "id": self.id,
+            "created_at": self.created_at,
+            "edited_at": self.edited_at,
+            "record_date": self.record_date,
+            "product": self.product.to_json(),
+            "quantity": self.quantity,
+            "expiry": self.expiry,
+        }
+
+    def __init__(self, record_date, product_id, quantity, expiry=None):
+        super().__init__(
+            id=uuid.uuid4(),
+            created_at=datetime.utcnow(),
+            edited_at=datetime.utcnow(),
+            record_date=record_date,
+            product_id=product_id,
+            quantity=quantity,
+            expiry=expiry,
+        )
+
+    def __repr__(self) -> str:
+        return (
+            f"<ProductionRecord(id={self.id!r}, record_date={self.record_date},"
+            f" product_id={self.product_id}, quantity={self.quantity},"
+            f" expiry={self.expiry})>"
+        )
+
+
+class ProductionRecord(db.Model):
+    """Model class for production records: amount of product produced each interval."""
+
+    __tablename__ = "production_records"
+
+    id: Mapped[uuid.UUID] = db.Column(db.Uuid, primary_key=True)
+    created_at: Mapped[datetime] = db.Column(db.DateTime)
+    edited_at: Mapped[datetime] = db.Column(db.DateTime)
+    product_id: Mapped[uuid.UUID] = db.Column(
+        db.Uuid, db.ForeignKey("products.id"), nullable=False
+    )
     record_date: Mapped[date] = db.Column(db.Date, unique=True)
     quantity: Mapped[int] = db.Column(db.Integer)
 
@@ -43,8 +138,98 @@ class EggStockRecord(db.Model):
         )
 
     def __repr__(self) -> str:
-        # !r returns the repr of the expression
-        return f"<EggStockRecord(id={self.id!r}, record_date={self.record_date}, quantity={self.quantity})>"
+        return (
+            f"<ProductionRecord(id={self.id!r}, record_date={self.record_date},"
+            f" quantity={self.quantity}, product_id={self.product_id})>"
+        )
+
+
+# WIP Order table - v1 for stock estimation algorithm
+class Order(db.Model):
+    """Model class for customer orders."""
+
+    __tablename__ = "orders"
+
+    id: Mapped[uuid.UUID] = db.Column(db.Uuid, primary_key=True)
+    created_at: Mapped[datetime] = db.Column(db.DateTime)
+    edited_at: Mapped[datetime] = db.Column(db.DateTime)
+    order_date: Mapped[date] = db.Column(db.Date)
+    order_time: Mapped[datetime] = db.Column(db.DateTime)
+    customer_id: Mapped[uuid.UUID] = db.Column(
+        db.Uuid, db.ForeignKey("customers.id"), nullable=False
+    )
+    quantity: Mapped[int] = db.Column(db.Integer)
+    product_id: Mapped[uuid.UUID] = db.Column(
+        db.Uuid, db.ForeignKey("products.id"), nullable=False
+    )
+    delivery_pickup: Mapped[str] = db.Column(db.String)
+    delivery_address: Mapped[str] = db.Column(db.String)
+
+    customer: Mapped["Customer"] = relationship(back_populates="orders")
+
+    def to_json(self) -> Dict:
+        return {
+            "id": self.id,
+            "created_at": self.created_at,
+            "edited_at": self.edited_at,
+            "order_date": self.order_date,
+            "order_time": self.order_time,
+            "customer": self.customer.to_json(),
+            "quantity": self.quantity,
+        }
+
+    def __init__(
+        self,
+        order_date,
+        order_time,
+        customer_id,
+        quantity,
+        delivery_pickup,
+        delivery_address,
+    ):
+        super().__init__(
+            id=uuid.uuid4(),
+            created_at=datetime.utcnow(),
+            edited_at=datetime.utcnow(),
+            order_date=order_date,
+            order_time=order_time,
+            customer_id=customer_id,
+            quantity=quantity,
+            delivery_pickup=delivery_pickup,
+            delivery_address=delivery_address,
+        )
+
+    def __repr__(self) -> str:
+        return (
+            f"<Order(id={self.id!r}, order_date={self.record_date},"
+            f" customer_id={self.customer_id}, quantity={self.quantity})>"
+        )
+
+
+# WIP
+class Customer(db.Model):
+    """Model class for customers."""
+
+    __tablename__ = "customers"
+
+    id: Mapped[uuid.UUID] = db.Column(db.Uuid, primary_key=True)
+    created_at: Mapped[datetime] = db.Column(db.DateTime)
+    edited_at: Mapped[datetime] = db.Column(db.DateTime)
+
+    orders: Mapped[List[Order]] = relationship(back_populates="customer")
+
+    def to_json(self) -> Dict:
+        return {}
+
+    def __init__(self):
+        super().__init__(
+            id=uuid.uuid4(),
+            created_at=datetime.utcnow(),
+            edited_at=datetime.utcnow(),
+        )
+
+    def __repr__(self) -> str:
+        return f"<Customer(id={self.id!r})>"
 
 
 class AbstractIngredient(db.Model):
@@ -81,6 +266,8 @@ class AbstractIngredient(db.Model):
 
 
 class Recipe(db.Model):
+    """Model class for recipes."""
+
     __tablename__ = "recipes"
 
     id: Mapped[uuid.UUID] = db.Column(db.Uuid, primary_key=True)
@@ -138,7 +325,7 @@ class RecipeIngredient(db.Model):
     abstract_ingredient: Mapped[AbstractIngredient] = relationship(
         back_populates="recipe_ingredients"
     )
-    recipe: Mapped[Recipe] = db.Relationship(back_populates="ingredients")
+    recipe: Mapped[Recipe] = relationship(back_populates="ingredients")
 
     def to_json(self) -> Dict:
         return {
@@ -163,20 +350,23 @@ class RecipeIngredient(db.Model):
 
     def __repr__(self) -> str:
         return (
-            f"<RecipeIngredient(id={self.id!r}, abstract_ingredient_id={self.abstract_ingredient_id},"
-            f"quantity={self.quantity}, units={self.units},recipe_id={self.recipe_id})>"
+            f"<RecipeIngredient(id={self.id!r},"
+            f" abstract_ingredient_id={self.abstract_ingredient_id},quantity={self.quantity},"
+            f" units={self.units},recipe_id={self.recipe_id})>"
         )
 
 
-def connect_to_db(application):
-    application.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///fullspectrum-dev"
+def connect_to_db(application, uri):
+    application.config["SQLALCHEMY_DATABASE_URI"] = uri
     application.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.app = application
     db.init_app(application)
     app.app_context().push()
 
 
-if __name__ == "__main__":
-    connect_to_db(app)
+# exclude from coverage
+if __name__ == "__main__":  # pragma: no cover
+    # FIXME to use a configured URI based on dev/prod
+    connect_to_db(app, "postgresql:///fullspectrum-dev")
     db.drop_all()
     db.create_all()
