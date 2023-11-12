@@ -35,5 +35,6 @@ def get_recipe(recipe_id):
 
 
 if __name__ == "__main__":
-    connect_to_db(app)
+    # FIXME to use a configured URI based on dev/prod
+    connect_to_db(app, "postgresql:///fullspectrum-dev")
     app.run(port=5000, host="0.0.0.0")
